@@ -4,21 +4,13 @@
 using namespace System.Windows.Forms
 using namespace System.Drawing
 
-# 1. Self-elevate
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-    $startInfo.FileName = "powershell.exe"
-    $startInfo.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-    $startInfo.Verb = "runas"
-    [System.Diagnostics.Process]::Start($startInfo) | Out-Null
-    exit
-}
+
 
 # Add types
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-$LogFile = Join-Path $PSScriptRoot "CM-PROB-DISABLED-Fixer_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+$LogFile = Join-Path [System.AppDomain]::CurrentDomain.BaseDirectory "CM-PROB-DISABLED-Fixer_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 $global:foundDrivers = @()
 
 function Log-Write {
@@ -215,3 +207,4 @@ $btnAMD.Add_Click({
 })
 
 $form.ShowDialog() | Out-Null
+
