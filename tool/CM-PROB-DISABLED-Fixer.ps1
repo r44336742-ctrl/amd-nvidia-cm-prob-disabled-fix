@@ -10,7 +10,7 @@ using namespace System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-$LogFile = Join-Path [System.AppDomain]::CurrentDomain.BaseDirectory "CM-PROB-DISABLED-Fixer_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+$LogFile = Join-Path $([System.AppDomain]::CurrentDomain.BaseDirectory) "CM-PROB-DISABLED-Fixer_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 $global:foundDrivers = @()
 
 function Log-Write {
@@ -207,4 +207,5 @@ $btnAMD.Add_Click({
 })
 
 $form.ShowDialog() | Out-Null
+
 
