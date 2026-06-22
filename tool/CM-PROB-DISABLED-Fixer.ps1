@@ -10,7 +10,9 @@ using namespace System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-$LogFile = Join-Path $([System.AppDomain]::CurrentDomain.BaseDirectory) "CM-PROB-DISABLED-Fixer_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+$exePath = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+$scriptDir = [System.IO.Path]::GetDirectoryName($exePath)
+$LogFile = Join-Path $scriptDir "CM-PROB-DISABLED-Fixer_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 $global:foundDrivers = @()
 
 function Log-Write {
@@ -99,7 +101,7 @@ function Run-Diagnostic {
 
     # Check Event Log
     Print-Msg "`nChecking Event Log for ID 411 in the last 7 days..."
-    $events = Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Kernel-PnP/Device Configuration'; Id=411; StartTime=(Get-Date).AddDays(-7)} -ErrorAction SilentlyContinue
+    try { $events = Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Kernel-PnP/Configuration'; Id=411; StartTime=(Get-Date).AddDays(-7)} -ErrorAction Stop } catch { $events = $null }
     
     if ($events) {
         $drivers = @()
@@ -207,5 +209,8 @@ $btnAMD.Add_Click({
 })
 
 $form.ShowDialog() | Out-Null
+
+
+
 
 
