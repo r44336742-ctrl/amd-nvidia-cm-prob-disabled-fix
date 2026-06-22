@@ -75,7 +75,8 @@ function Print-Msg {
 }
 
 function Run-Diagnostic {
-    $txtOutput.Clear()
+    param([bool]$Clear = $true)
+    if ($Clear) { $txtOutput.Clear() }
     Print-Msg "=== Starting Diagnosis ==="
     $global:foundDrivers = @()
     $matchFound = $false
@@ -161,7 +162,8 @@ $btnApplyFix.Add_Click({
             Print-Msg "Running: $cmd"
             $cmdParts = $cmd -split " "
             try {
-                $proc = Start-Process -FilePath $cmdParts[0] -ArgumentList ($cmdParts[1..$cmdParts.Length] -join " ") -Wait -NoNewWindow -PassThru
+                $args = $cmdParts[1..($cmdParts.Length - 1)] -join " "
+                $proc = Start-Process -FilePath $cmdParts[0] -ArgumentList $args -Wait -NoNewWindow -PassThru
                 Print-Msg "Exit code: $($proc.ExitCode)"
             } catch {
                 Print-Msg "Failed to run command: $_"
@@ -170,15 +172,18 @@ $btnApplyFix.Add_Click({
 
         Print-Msg "`nApplying Windows Update Registry Key (ExcludeWUDriversInQualityUpdate)..."
         try {
-            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Force | Out-Null
-            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "ExcludeWUDriversInQualityUpdate" -Value 1 -Type DWord
+            $regPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+            if (!(Test-Path $regPath)) {
+                New-Item -Path $regPath -Force | Out-Null
+            }
+            Set-ItemProperty -Path $regPath -Name "ExcludeWUDriversInQualityUpdate" -Value 1 -Type DWord
             Print-Msg "Registry key applied successfully."
         } catch {
             Print-Msg "Failed to apply registry key: $_"
         }
 
         Print-Msg "`nRe-running diagnostic to confirm..."
-        Run-Diagnostic
+        Run-Diagnostic $false
 
         $stillDisabled = $false
         $devices = Get-PnpDevice -Class Display -PresentOnly
